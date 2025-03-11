@@ -1,0 +1,51 @@
+
+services:
+  db:
+    container_name: postgres_Platform
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root_password
+      POSTGRES_DB: Platform_db
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - laravel_network
+
+  pgadmin:
+    container_name: pgadmin4_Platform
+    image: dpage/pgadmin4:latest
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root_password
+    ports:
+      - "8082:80"
+    networks:
+      - laravel_network
+
+
+  app:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: php_Platform
+    restart: always
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html:delegated
+    ports:
+       - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - laravel_network
+
+volumes:
+  db_data:
+
+networks:
+  laravel_network:
