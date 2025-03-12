@@ -19,8 +19,8 @@ class V1CourseResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'content' => $this->content,
-            'category' => $this->category,  // Ensure category is not null
-            'tags' => $this->tags ? $this->tags->pluck('name')->toArray() : [], // Handle tags properly (consider null checks here if necessary)
+            'category' => $this->category,  
+            'tags' => $this->tags ? $this->tags->pluck('name')->toArray() : [], 
         ];
     }
 }

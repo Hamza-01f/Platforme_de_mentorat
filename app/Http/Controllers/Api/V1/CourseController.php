@@ -35,16 +35,17 @@ class CourseController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'category_id' => 'required|exists:categories,id',
-            'tags' => 'array',
-            'tags.*' => 'exists:tags,id',
-        ]);
+        // dd($request);
+
+        // $request->validate([
+        //     'title' => 'required|string',
+        //     'content' => 'required|string',
+        //     'category_id' => 'required|exists:categories,id',
+        //     'tags' => 'array',
+        //     'tags.*' => 'exists:tags,id',
+        // ]);
 
         $course = $this->courseRepository->create($request->all());
-
         return new V1CourseResource($course);
     }
 
