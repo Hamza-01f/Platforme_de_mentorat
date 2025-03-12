@@ -6,28 +6,79 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1CourseCollection;
 use App\Http\Resources\V1CourseResource;
-use App\Models\Course;
+use App\Repositories\CourseRepositoryInterface;
 
 class CourseController extends Controller
 {
-    public function index(){
-         return new V1CourseCollection(Course::all());
+    protected $courseRepository;
+
+    public function __construct(CourseRepositoryInterface $courseRepository)
+    {
+        $this->courseRepository = $courseRepository;
     }
 
-    public function show(Course $course){
-            return new V1CourseResource($course);
+    public function index()
+    {
+        return new V1CourseCollection($this->courseRepository->all());
     }
 
-    public function store(){
+    public function show($id)
+    {
+        $course = $this->courseRepository->find($id);
 
+        if (!$course) {
+            return response()->json(['message' => 'Course not found'], 404);
+        }
+
+        return new V1CourseResource($course);
     }
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'category_id' => 'required|exists:categories,id',
+            'tags' => 'array',
+            'tags.*' => 'exists:tags,id',
+        ]);
 
-    public function update(){
+        $course = $this->courseRepository->create($request->all());
 
+        return new V1CourseResource($course);
     }
 
-    public function destroy(){
-        
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'content' => 'sometimes|required|string',
+            'category_id' => 'sometimes|required|exists:categories,id',
+            'tags' => 'sometimes|array',
+            'tags.*' => 'exists:tags,id',
+        ]);
+
+        $course = $this->courseRepository->find($id);
+
+        if (!$course) {
+            return response()->json(['message' => 'Course not found'], 404);
+        }
+
+        $this->courseRepository->update($course, $request->all());
+
+        return new V1CourseResource($course);
+    }
+
+    public function destroy($id)
+    {
+        $course = $this->courseRepository->find($id);
+
+        if (!$course) {
+            return response()->json(['message' => 'Course not found'], 404);
+        }
+
+        $this->courseRepository->delete($course);
+
+        return response()->json(['message' => 'Course deleted successfully'], 200);
     }
 }

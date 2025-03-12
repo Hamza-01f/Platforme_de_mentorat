@@ -12,8 +12,10 @@ class V1CourseCollection extends ResourceCollection
      *
      * @return array<int|string, mixed>
      */
-    public function toArray(Request $request): array
+    public function toArray($request)
     {
-        return parent::toArray($request);
+        return $this->collection->map(function ($course) {
+            return new V1CourseResource($course);
+        });
     }
 }

@@ -2,52 +2,75 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1TagResource;
 use App\Http\Resources\V1TagCollection;
-use App\Models\Tag;
-
-
+use App\Repositories\TagRepositoryInterface;
+use Illuminate\Http\Request;
 
 class TagController extends Controller
 {
-    public function index(){
-        return   new V1TagCollection(Tag::all());
+    protected $tagRepository;
 
+    public function __construct(TagRepositoryInterface $tagRepository)
+    {
+        $this->tagRepository = $tagRepository;
     }
 
-
-    public function show(Tag $category){
-           return new V1TagResource($category);
+    public function index()
+    {
+        return new V1TagCollection($this->tagRepository->all());
     }
 
+    public function show($id)
+    {
+        $tag = $this->tagRepository->find($id);
 
-    public function store(Request $request){
+        if (!$tag) {
+            return response()->json(['message' => 'Tag not found'], 404);
+        }
 
-        $request -> validate([
+        return new V1TagResource($tag);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
             'name' => 'required|string|max:255',
-            ]);
+        ]);
 
-       $category = Tag::create($request->all());
+        $tag = $this->tagRepository->create($request->all());
 
-       return new V1TagResource($category);
-
-
+        return new V1TagResource($tag);
     }
-    public function update(Request $request, Tag $category)
+
+    public function update(Request $request, $id)
     {
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
         ]);
 
-        $category->update($request->all());
+        $tag = $this->tagRepository->find($id);
 
-        return new V1TagResource($category);
+        if (!$tag) {
+            return response()->json(['message' => 'Tag not found'], 404);
+        }
+
+        $this->tagRepository->update($tag, $request->all());
+
+        return new V1TagResource($tag);
     }
-    public function destroy(Tag $tag){
 
-        $tag->delete();
-        return response()->json(["the tag was deleted successefully "],200);
+    public function destroy($id)
+    {
+        $tag = $this->tagRepository->find($id);
+
+        if (!$tag) {
+            return response()->json(['message' => 'Tag not found'], 404);
+        }
+
+        $this->tagRepository->delete($tag);
+
+        return response()->json(['message' => 'Tag deleted successfully'], 200);
     }
 }

@@ -12,13 +12,15 @@ class V1CourseResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-    public function toArray(Request $request): array
+    public function toArray($request)
     {
+        // Make sure you're checking for null before accessing properties
         return [
-           "id" => $this->id,
-           "title" => $this->title,
-           "content" => $this->content,
-           "category_id" => $this->category_id
+            'id' => $this->id,
+            'title' => $this->title,
+            'content' => $this->content,
+            'category' => $this->category,  // Ensure category is not null
+            'tags' => $this->tags ? $this->tags->pluck('name')->toArray() : [], // Handle tags properly (consider null checks here if necessary)
         ];
     }
 }
