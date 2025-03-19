@@ -16,4 +16,6 @@ class V1CategoryCollection extends ResourceCollection
     {
         return parent::toArray($request);
     }
+
+    
 }
