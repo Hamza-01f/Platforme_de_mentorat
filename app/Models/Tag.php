@@ -2,22 +2,40 @@
 
 namespace App\Models;
 
+// use Illuminate\Database\Eloquent\Factories\HasFactory;
+// use Illuminate\Database\Eloquent\Model;
+// use App\Models\Course;
+
+// class Tag extends Model
+// {
+//      use HasFactory;
+
+//      protected $fillable = [
+//         'name',
+//    ]; 
+
+
+
+//    public function courses()
+//    {
+//        return $this->belongsToMany(Course::class, 'course_tag');
+//    }
+// }
+
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Course;
 
 class Tag extends Model
 {
-     use HasFactory;
+    /** @use HasFactory<\Database\Factories\TagFactory> */
+    use HasFactory;
 
-     protected $fillable = [
-        'name',
-   ]; 
+    protected $fillable = ['name'];
 
-
-
-   public function courses()
-   {
-       return $this->belongsToMany(Course::class, 'course_tag');
-   }
+    public function courses(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_tag');
+    }
 }
+

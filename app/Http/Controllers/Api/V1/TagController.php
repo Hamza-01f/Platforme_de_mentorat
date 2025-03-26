@@ -2,75 +2,187 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+// use App\Http\Controllers\Controller;
+// use App\Http\Resources\V1TagResource;
+// use App\Http\Resources\V1TagCollection;
+// use App\Repositories\TagRepositoryInterface;
+// use Illuminate\Http\Request;
+
+// class TagController extends Controller
+// {
+//     protected $tagRepository;
+
+//     public function __construct(TagRepositoryInterface $tagRepository)
+//     {
+//         $this->tagRepository = $tagRepository;
+//     }
+
+//     public function index()
+//     {
+//         return new V1TagCollection($this->tagRepository->all());
+//     }
+
+//     public function show($id)
+//     {
+//         $tag = $this->tagRepository->find($id);
+
+//         if (!$tag) {
+//             return response()->json(['message' => 'Tag not found'], 404);
+//         }
+
+//         return new V1TagResource($tag);
+//     }
+
+//     public function store(Request $request)
+//     {
+//         $request->validate([
+//             'name' => 'required|string|max:255',
+//         ]);
+
+//         $tag = $this->tagRepository->create($request->all());
+
+//         return new V1TagResource($tag);
+//     }
+
+//     public function update(Request $request, $id)
+//     {
+//         $request->validate([
+//             'name' => 'sometimes|required|string|max:255',
+//         ]);
+
+//         $tag = $this->tagRepository->find($id);
+
+//         if (!$tag) {
+//             return response()->json(['message' => 'Tag not found'], 404);
+//         }
+
+//         $this->tagRepository->update($tag, $request->all());
+
+//         return new V1TagResource($tag);
+//     }
+
+//     public function destroy($id)
+//     {
+//         $tag = $this->tagRepository->find($id);
+
+//         if (!$tag) {
+//             return response()->json(['message' => 'Tag not found'], 404);
+//         }
+
+//         $this->tagRepository->delete($tag);
+
+//         return response()->json(['message' => 'Tag deleted successfully'], 200);
+//     }
+// }
+
+
 use App\Http\Controllers\Controller;
-use App\Http\Resources\V1TagResource;
-use App\Http\Resources\V1TagCollection;
-use App\Repositories\TagRepositoryInterface;
-use Illuminate\Http\Request;
+use App\Http\Requests\V1\TagRequest;
+use App\Http\Resources\V1\TagCollection;
+use App\Http\Resources\V1\TagResource;
+use App\Interfaces\TagRepositoryInterface;
 
 class TagController extends Controller
 {
-    protected $tagRepository;
+    public TagRepositoryInterface $tagRepository;
 
-    public function __construct(TagRepositoryInterface $tagRepository)
+    /**
+     * @param TagRepositoryInterface $tag
+     */
+    public function __construct(TagRepositoryInterface $tag)
     {
-        $this->tagRepository = $tagRepository;
+        $this->tagRepository = $tag;
     }
 
-    public function index()
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(): \Illuminate\Http\JsonResponse
     {
-        return new V1TagCollection($this->tagRepository->all());
+        $tags = new TagCollection($this->tagRepository->index());
+        return response()->json([
+            'success' => true,
+            'message' => "Tags imported successfully",
+            'tags' => $tags
+        ], 200);
     }
 
-    public function show($id)
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(TagRequest $request): \Illuminate\Http\JsonResponse
     {
-        $tag = $this->tagRepository->find($id);
-
-        if (!$tag) {
-            return response()->json(['message' => 'Tag not found'], 404);
+        $data = $request->validated();
+        try{
+            $this->tagRepository->store($data);
+            return response()->json([
+                'success' => true,
+                'message' => "Tag inserted successfully"
+            ], 201);
+        } catch (\Exception $e) {
+            \Log::error('Error creating the tag: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => "Tag not inserted",
+                'data' => $data
+            ], 500);
         }
-
-        return new V1TagResource($tag);
     }
 
-    public function store(Request $request)
+    /**
+     * Display the specified resource.
+     */
+ public function show(int $id): \Illuminate\Http\JsonResponse
+ {
+     $tag = $this->tagRepository->getById($id);
+     if (!$tag) {
+         return response()->json([
+             'success' => false,
+             'message' => 'Tag not found'
+         ], 404);
+     }
+     return response()->json(new TagResource($tag), 200);
+ }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(TagRequest $request, int $id): \Illuminate\Http\JsonResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
-
-        $tag = $this->tagRepository->create($request->all());
-
-        return new V1TagResource($tag);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-        ]);
-
-        $tag = $this->tagRepository->find($id);
-
-        if (!$tag) {
-            return response()->json(['message' => 'Tag not found'], 404);
+        $data = $request->validated();
+        try {
+            $this->tagRepository->update($id, $data);
+            return response()->json([
+                'success' => true,
+                'message' => "Tag updated successfully"
+            ], 200);
+        } catch (\Exception $e) {
+            \Log::error('Error updating the tag: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => "Tag not updated"
+            ], 500);
         }
-
-        $this->tagRepository->update($tag, $request->all());
-
-        return new V1TagResource($tag);
     }
 
-    public function destroy($id)
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(int $id): \Illuminate\Http\JsonResponse
     {
-        $tag = $this->tagRepository->find($id);
-
-        if (!$tag) {
-            return response()->json(['message' => 'Tag not found'], 404);
+        try{
+            $this->tagRepository->delete($id);
+            return response()->json([
+                'success' => true,
+                'message' => "Tag deleted successfully"
+            ]);
         }
-
-        $this->tagRepository->delete($tag);
-
-        return response()->json(['message' => 'Tag deleted successfully'], 200);
+        catch (\Exception $e) {
+            \Log::error('Error deleting the tag: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => "Tag not deleted"
+            ], 500);
+        }
     }
 }

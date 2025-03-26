@@ -2,9 +2,32 @@
 
 namespace App\Providers;
 
+use App\Interfaces\AuthRepositoryInterface;
+use App\Interfaces\CategoryRepositoryInterface;
+use App\Interfaces\CourseRepositoryInterface;
+use App\Interfaces\EnrollmentRepositoryInterface;
+use App\Interfaces\PermissionRepositoryInterface;
+use App\Interfaces\RoleRepositoryInterface;
+use App\Interfaces\TagRepositoryInterface;
+use App\Models\Enrollment;
+use App\Repositories\AuthRepository;
+use App\Repositories\CategoryRepository;
+use App\Repositories\CourseRepository;
+use App\Repositories\EnrollmentRepository;
+use App\Repositories\PermissionRepository;
+use App\Repositories\RoleRepository;
+use App\Repositories\TagRepository;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Telescope\TelescopeServiceProvider;
 
+
+/**
+ * @OA\Info(
+ *     title="E-Learning",
+ *     version="1.0.0"
+ * )
+ */
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -12,7 +35,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(TagRepositoryInterface::class, TagRepository::class);
+        $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
+        $this->app->bind(CourseRepositoryInterface::class, CourseRepository::class);
+        $this->app->bind(AuthRepositoryInterface::class, AuthRepository::class);
+        $this->app->bind(EnrollmentRepositoryInterface::class, Enrollmentrepository::class);
+        $this->app->bind(RoleRepositoryInterface::class, RoleRepository::class);
+        $this->app->bind(PermissionRepositoryInterface::class, PermissionRepository::class);
+
     }
 
     /**
@@ -20,8 +50,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Route::prefix('api')
-        ->middleware('api')
-        ->group(base_path('routes/api.php'));
+        Route::middleware('api')
+            ->prefix('api')
+            ->group(base_path('routes/api.php'));
     }
 }
